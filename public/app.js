@@ -37,6 +37,15 @@ const rconPasswordInput = document.getElementById("rcon-password");
 const rconOutput = document.getElementById("rcon-output");
 const rconCommand = document.getElementById("rcon-command");
 const rconSend = document.getElementById("rcon-send");
+const refreshMetricsButton = document.getElementById("refresh-metrics");
+const metricHeap = document.getElementById("metric-heap");
+const metricGc = document.getElementById("metric-gc");
+const metricThreads = document.getElementById("metric-threads");
+const metricCpu = document.getElementById("metric-cpu");
+const metricUptime = document.getElementById("metric-uptime");
+const metricTick = document.getElementById("metric-tick");
+const metricMemPressure = document.getElementById("metric-mem-pressure");
+const metricPlayers = document.getElementById("metric-players");
 
 let connectionData = null;
 let steps = [];
@@ -71,6 +80,7 @@ function setButtonsState(enabled) {
   savePropertiesButton.disabled = !enabled;
   applyPropertiesButton.disabled = !enabled;
   rconSend.disabled = !enabled;
+  refreshMetricsButton.disabled = !enabled;
 }
 
 async function fetchSteps() {
@@ -309,6 +319,63 @@ async function saveServerProperties() {
   }
 }
 
+function formatSeconds(seconds) {
+  if (seconds === null || Number.isNaN(seconds)) {
+    return "–";
+  }
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${hours}h ${minutes}m ${secs}s`;
+}
+
+function formatMemoryPressure(heap) {
+  if (!heap || !heap.maxMb) {
+    return "–";
+  }
+  const percent = (heap.usedMb / heap.maxMb) * 100;
+  return `${percent.toFixed(1)}%`;
+}
+
+async function refreshMetrics() {
+  if (!connectionData) {
+    return;
+  }
+  try {
+    const response = await fetch("/api/metrics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...connectionData,
+        rconHost: rconHostInput.value.trim(),
+        rconPort: rconPortInput.value.trim(),
+        rconPassword: rconPasswordInput.value,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Monitoring konnte nicht geladen werden.");
+    }
+    const metrics = data.data || {};
+    metricHeap.textContent = metrics.heap
+      ? `${metrics.heap.usedMb} MB / ${metrics.heap.maxMb} MB`
+      : "–";
+    metricGc.textContent = metrics.gc
+      ? `${metrics.gc.runs} Runs / ${metrics.gc.pauseSeconds}s`
+      : "–";
+    metricThreads.textContent = metrics.threads ?? "–";
+    metricCpu.textContent = metrics.cpu ? `${metrics.cpu}%` : "–";
+    metricUptime.textContent = formatSeconds(metrics.uptime);
+    metricTick.textContent = metrics.tickTimes ? `${metrics.tickTimes} ms` : "–";
+    metricMemPressure.textContent = formatMemoryPressure(metrics.heap);
+    metricPlayers.textContent = metrics.players
+      ? `${metrics.players.online} / ${metrics.players.max}`
+      : "–";
+  } catch (error) {
+    log(error.message);
+  }
+}
+
 function applyJmxToStartScript() {
   const port = jmxPortInput.value.trim() || "9010";
   const host = jmxHostInput.value.trim() || "0.0.0.0";
@@ -365,6 +432,7 @@ connectionForm.addEventListener("submit", async (event) => {
       clearInterval(statusTimer);
     }
     statusTimer = setInterval(updateStatus, 5000);
+    await refreshMetrics();
     log("Bereit für die Installation.");
   } catch (error) {
     log(error.message);
@@ -442,6 +510,7 @@ applyPropertiesButton.addEventListener("click", () => {
   applyFormToProperties();
   log("Einstellungen in den Editor übernommen.");
 });
+refreshMetricsButton.addEventListener("click", refreshMetrics);
 
 consoleSend.addEventListener("click", () => {
   const value = consoleCommand.value.trim();

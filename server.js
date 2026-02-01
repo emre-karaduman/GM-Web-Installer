@@ -312,6 +312,122 @@ app.post("/api/rcon/command", async (req, res) => {
   }
 });
 
+app.post("/api/metrics", async (req, res) => {
+  const {
+    host,
+    username,
+    password,
+    rconHost,
+    rconPort,
+    rconPassword,
+  } = req.body;
+  if (!host || !username || !password) {
+    res.status(400).json({ message: "Bitte Host, Benutzer und Passwort angeben." });
+    return;
+  }
+  let connection;
+  let rcon;
+  try {
+    connection = await withConnection({ host, username, password });
+    const pidResult = await runCommand(connection, "pgrep -f 'paper.jar' | head -n1");
+    const pid = pidResult.stdout.trim();
+    let heap = null;
+    let gc = null;
+    let threads = null;
+    let cpu = null;
+    let uptime = null;
+
+    if (pid) {
+      const jstatResult = await runCommand(connection, `jstat -gc ${pid}`);
+      const lines = jstatResult.stdout.trim().split("\n");
+      if (lines.length >= 2) {
+        const headers = lines[0].trim().split(/\s+/);
+        const values = lines[1].trim().split(/\s+/);
+        const map = headers.reduce((acc, key, index) => {
+          acc[key] = Number(values[index]);
+          return acc;
+        }, {});
+        const heapUsedKb = (map.EU || 0) + (map.OU || 0) + (map.S0U || 0) + (map.S1U || 0);
+        const heapMaxKb = (map.EC || 0) + (map.OC || 0) + (map.S0C || 0) + (map.S1C || 0);
+        heap = {
+          usedMb: Number((heapUsedKb / 1024).toFixed(1)),
+          maxMb: Number((heapMaxKb / 1024).toFixed(1)),
+        };
+        gc = {
+          runs: Number((map.YGC || 0) + (map.FGC || 0)),
+          pauseSeconds: Number((map.GCT || 0).toFixed(2)),
+        };
+      }
+
+      const threadResult = await runCommand(
+        connection,
+        `jcmd ${pid} PerfCounter.print | grep 'java.threads.live'`
+      );
+      const threadValue = threadResult.stdout.trim().split(/\s+/).pop();
+      threads = threadValue ? Number(threadValue) : null;
+
+      const cpuResult = await runCommand(connection, `ps -p ${pid} -o %cpu=`);
+      cpu = cpuResult.stdout.trim();
+
+      const uptimeResult = await runCommand(connection, `jcmd ${pid} VM.uptime`);
+      const uptimeMatch = uptimeResult.stdout.match(/Uptime:\s+([\\d.]+)/);
+      uptime = uptimeMatch ? Number(uptimeMatch[1]) : null;
+    }
+
+    let tps = null;
+    let tickTimes = null;
+    let players = null;
+
+    if (rconHost && rconPort && rconPassword) {
+      rcon = await Rcon.connect({
+        host: rconHost,
+        port: Number(rconPort),
+        password: rconPassword,
+      });
+      const tpsResponse = await rcon.send("tps");
+      const tpsMatch = tpsResponse.match(/TPS from last 1m, 5m, 15m:\\s*([\\d.,]+),\\s*([\\d.,]+),\\s*([\\d.,]+)/);
+      if (tpsMatch) {
+        tps = {
+          oneMin: Number(tpsMatch[1].replace(",", ".")),
+          fiveMin: Number(tpsMatch[2].replace(",", ".")),
+          fifteenMin: Number(tpsMatch[3].replace(",", ".")),
+        };
+      }
+      const tickMatch = tpsResponse.match(/Ticking:\\s*([\\d.]+)\\s*ms/);
+      tickTimes = tickMatch ? Number(tickMatch[1]) : null;
+
+      const listResponse = await rcon.send("list");
+      const listMatch = listResponse.match(/There are (\\d+) of a max of (\\d+) players online/);
+      players = listMatch
+        ? { online: Number(listMatch[1]), max: Number(listMatch[2]) }
+        : null;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        heap,
+        gc,
+        threads,
+        cpu,
+        uptime,
+        tps,
+        tickTimes,
+        players,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (rcon) {
+      await rcon.end().catch(() => {});
+    }
+    if (connection) {
+      connection.end();
+    }
+  }
+});
+
 app.get("/api/install-steps", (req, res) => {
   res.json({
     steps: installSteps.map((step) => ({

@@ -234,6 +234,50 @@
         <h2>Log</h2>
         <pre id="log"></pre>
       </section>
+
+      <section class="card">
+        <h2>JMX / Monitoring</h2>
+        <p class="muted">
+          Live-Metriken aus JMX und Paper (Tps/Spieler via RCON).
+        </p>
+        <div class="actions">
+          <button id="refresh-metrics" disabled>Monitoring aktualisieren</button>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span>Heap Used / Max</span>
+            <strong id="metric-heap">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>GC Runs & Pausen</span>
+            <strong id="metric-gc">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>Thread Count</span>
+            <strong id="metric-threads">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>CPU Load</span>
+            <strong id="metric-cpu">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>Uptime</span>
+            <strong id="metric-uptime">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>Tick Times</span>
+            <strong id="metric-tick">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>Memory Pressure</span>
+            <strong id="metric-mem-pressure">–</strong>
+          </div>
+          <div class="metric-card">
+            <span>Spieler Online</span>
+            <strong id="metric-players">–</strong>
+          </div>
+        </div>
+      </section>
     </main>
 
     <script src="/app.js"></script>
