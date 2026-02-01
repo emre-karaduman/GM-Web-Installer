@@ -59,6 +59,33 @@
           Passe den Inhalt von <code>/opt/minecraft/start.sh</code> an und speichere
           ihn direkt auf dem Server.
         </p>
+        <div class="properties-grid">
+          <label>
+            JMX Port
+            <input type="number" id="jmx-port" placeholder="9010" />
+          </label>
+          <label>
+            JMX Host
+            <input type="text" id="jmx-host" placeholder="0.0.0.0" />
+          </label>
+          <label>
+            JMX Auth
+            <select id="jmx-auth">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
+          <label>
+            JMX SSL
+            <select id="jmx-ssl">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="apply-jmx" disabled>JMX in Startskript übernehmen</button>
+        </div>
         <textarea id="start-script" rows="6" placeholder="#!/usr/bin/env bash"></textarea>
         <div class="actions">
           <button id="load-script" disabled>Skript laden</button>

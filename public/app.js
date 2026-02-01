@@ -12,6 +12,11 @@ const consoleSend = document.getElementById("console-send");
 const startScriptArea = document.getElementById("start-script");
 const loadScriptButton = document.getElementById("load-script");
 const saveScriptButton = document.getElementById("save-script");
+const applyJmxButton = document.getElementById("apply-jmx");
+const jmxPortInput = document.getElementById("jmx-port");
+const jmxHostInput = document.getElementById("jmx-host");
+const jmxAuthSelect = document.getElementById("jmx-auth");
+const jmxSslSelect = document.getElementById("jmx-ssl");
 const serverPropertiesArea = document.getElementById("server-properties");
 const loadPropertiesButton = document.getElementById("load-properties");
 const savePropertiesButton = document.getElementById("save-properties");
@@ -61,6 +66,7 @@ function setButtonsState(enabled) {
   statusButton.disabled = !enabled;
   loadScriptButton.disabled = !enabled;
   saveScriptButton.disabled = !enabled;
+  applyJmxButton.disabled = !enabled;
   loadPropertiesButton.disabled = !enabled;
   savePropertiesButton.disabled = !enabled;
   applyPropertiesButton.disabled = !enabled;
@@ -303,6 +309,34 @@ async function saveServerProperties() {
   }
 }
 
+function applyJmxToStartScript() {
+  const port = jmxPortInput.value.trim() || "9010";
+  const host = jmxHostInput.value.trim() || "0.0.0.0";
+  const auth = jmxAuthSelect.value;
+  const ssl = jmxSslSelect.value;
+  const jmxFlags = [
+    "-Dcom.sun.management.jmxremote",
+    `-Dcom.sun.management.jmxremote.port=${port}`,
+    `-Dcom.sun.management.jmxremote.rmi.port=${port}`,
+    `-Dcom.sun.management.jmxremote.authenticate=${auth}`,
+    `-Dcom.sun.management.jmxremote.ssl=${ssl}`,
+    `-Djava.rmi.server.hostname=${host}`,
+  ].join(" ");
+
+  const lines = (startScriptArea.value || "").split("\n");
+  const updated = lines.map((line) => {
+    if (!line.includes("java ")) {
+      return line;
+    }
+    const cleaned = line
+      .replace(/-Dcom\.sun\.management\.jmxremote\S*\s*/g, "")
+      .replace(/-Djava\.rmi\.server\.hostname=\S+\s*/g, "");
+    return cleaned.replace("java ", `java ${jmxFlags} `);
+  });
+  startScriptArea.value = updated.join("\n");
+  log("JMX Einstellungen in start.sh übernommen.");
+}
+
 connectionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(connectionForm);
@@ -401,6 +435,7 @@ stopButton.addEventListener("click", () => controlServer("stop"));
 statusButton.addEventListener("click", updateStatus);
 loadScriptButton.addEventListener("click", loadStartScript);
 saveScriptButton.addEventListener("click", saveStartScript);
+applyJmxButton.addEventListener("click", applyJmxToStartScript);
 loadPropertiesButton.addEventListener("click", loadServerProperties);
 savePropertiesButton.addEventListener("click", saveServerProperties);
 applyPropertiesButton.addEventListener("click", () => {
