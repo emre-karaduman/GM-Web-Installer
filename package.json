@@ -1,0 +1,13 @@
+{
+  "name": "gm-web-installer",
+  "version": "1.0.0",
+  "description": "Webapp for installing and controlling a gameserver over SSH",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ssh2": "^1.15.0"
+  }
+}

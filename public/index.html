@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gameserver Installer</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Gameserver Installation</h1>
+        <p>Verbinde dich per SSH und installiere den Gameserver Schritt für Schritt.</p>
+      </header>
+
+      <section class="card">
+        <h2>Verbindung</h2>
+        <form id="connection-form">
+          <label>
+            Server-IP
+            <input type="text" name="host" placeholder="192.168.0.10" required />
+          </label>
+          <label>
+            Benutzer
+            <input type="text" name="username" value="root" required />
+          </label>
+          <label>
+            Passwort
+            <input type="password" name="password" placeholder="Passwort" required />
+          </label>
+          <button type="submit">Installationsschritte laden</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Installation</h2>
+        <div class="actions">
+          <button id="install-button" disabled>Installation starten</button>
+        </div>
+        <ol id="steps-list"></ol>
+      </section>
+
+      <section class="card">
+        <h2>Server steuern</h2>
+        <div class="actions">
+          <button id="start-button" disabled>Server starten</button>
+          <button id="stop-button" disabled>Server stoppen</button>
+        </div>
+      </section>
+
+      <section class="card log-card">
+        <h2>Log</h2>
+        <pre id="log"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
