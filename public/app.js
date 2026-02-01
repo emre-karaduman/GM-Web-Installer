@@ -4,14 +4,23 @@ const installButton = document.getElementById("install-button");
 const startButton = document.getElementById("start-button");
 const stopButton = document.getElementById("stop-button");
 const logArea = document.getElementById("log");
+const consoleOutput = document.getElementById("console-output");
+const consoleCommand = document.getElementById("console-command");
+const consoleSend = document.getElementById("console-send");
 
 let connectionData = null;
 let steps = [];
+let socket = null;
 
 function log(message) {
   const timestamp = new Date().toLocaleTimeString();
   logArea.textContent += `[${timestamp}] ${message}\n`;
   logArea.scrollTop = logArea.scrollHeight;
+}
+
+function appendConsole(message) {
+  consoleOutput.textContent += message;
+  consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
 function setButtonsState(enabled) {
@@ -38,6 +47,37 @@ function renderSteps() {
   });
 }
 
+function connectConsole() {
+  if (!connectionData) {
+    return;
+  }
+  if (socket) {
+    socket.close();
+  }
+  const params = new URLSearchParams(connectionData);
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  socket = new WebSocket(`${protocol}://${window.location.host}/ws/console?${params}`);
+
+  socket.addEventListener("open", () => {
+    consoleSend.disabled = false;
+    appendConsole("Konsole verbunden.\n");
+  });
+
+  socket.addEventListener("message", (event) => {
+    appendConsole(event.data);
+  });
+
+  socket.addEventListener("close", () => {
+    consoleSend.disabled = true;
+    appendConsole("\nKonsole getrennt.\n");
+  });
+
+  socket.addEventListener("error", () => {
+    consoleSend.disabled = true;
+    appendConsole("\nVerbindungsfehler in der Konsole.\n");
+  });
+}
+
 connectionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(connectionForm);
@@ -52,6 +92,7 @@ connectionForm.addEventListener("submit", async (event) => {
     await fetchSteps();
     renderSteps();
     setButtonsState(true);
+    connectConsole();
     log("Bereit für die Installation.");
   } catch (error) {
     log(error.message);
@@ -117,3 +158,19 @@ async function controlServer(action) {
 
 startButton.addEventListener("click", () => controlServer("start"));
 stopButton.addEventListener("click", () => controlServer("stop"));
+
+consoleSend.addEventListener("click", () => {
+  const value = consoleCommand.value.trim();
+  if (!value || !socket || socket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+  socket.send(`${value}\n`);
+  consoleCommand.value = "";
+});
+
+consoleCommand.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    consoleSend.click();
+  }
+});

@@ -48,6 +48,24 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Live-Konsole</h2>
+        <p class="muted">
+          Verbinde dich per SSH und sende Befehle direkt an den Server.
+        </p>
+        <div class="console">
+          <pre id="console-output"></pre>
+          <div class="console-input">
+            <input
+              id="console-command"
+              type="text"
+              placeholder="Befehl eingeben (z. B. status)"
+            />
+            <button id="console-send" disabled>Befehl senden</button>
+          </div>
+        </div>
+      </section>
+
       <section class="card log-card">
         <h2>Log</h2>
         <pre id="log"></pre>

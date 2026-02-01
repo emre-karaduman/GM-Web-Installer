@@ -27,6 +27,11 @@ header p {
   color: #465265;
 }
 
+.muted {
+  color: #6b7280;
+  margin-top: 4px;
+}
+
 .card {
   background: #ffffff;
   border-radius: 16px;
@@ -103,4 +108,31 @@ code {
   max-height: 240px;
   overflow: auto;
   font-size: 13px;
+}
+
+.console {
+  display: grid;
+  gap: 12px;
+}
+
+.console pre {
+  background: #0b1220;
+  color: #dbeafe;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 200px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.console-input {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.console-input input {
+  flex: 1 1 240px;
 }
