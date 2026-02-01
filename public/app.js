@@ -170,9 +170,39 @@ async function loadStartScript() {
       throw new Error(data.message || "Startskript konnte nicht geladen werden.");
     }
     startScriptArea.value = data.script || "";
+    fillJmxFormFromStartScript(startScriptArea.value);
     log("Startskript geladen.");
   } catch (error) {
     log(error.message);
+  }
+}
+
+function fillJmxFormFromStartScript(text) {
+  const javaLine = text
+    .split("\n")
+    .find((line) => line.includes("java ") && line.includes("jmxremote"));
+  if (!javaLine) {
+    return;
+  }
+  const portMatch = javaLine.match(/-Dcom\.sun\.management\.jmxremote\.port=(\d+)/);
+  const hostMatch = javaLine.match(/-Djava\.rmi\.server\.hostname=([^\s]+)/);
+  const authMatch = javaLine.match(
+    /-Dcom\.sun\.management\.jmxremote\.authenticate=(true|false)/
+  );
+  const sslMatch = javaLine.match(
+    /-Dcom\.sun\.management\.jmxremote\.ssl=(true|false)/
+  );
+  if (portMatch) {
+    jmxPortInput.value = portMatch[1];
+  }
+  if (hostMatch) {
+    jmxHostInput.value = hostMatch[1];
+  }
+  if (authMatch) {
+    jmxAuthSelect.value = authMatch[1];
+  }
+  if (sslMatch) {
+    jmxSslSelect.value = sslMatch[1];
   }
 }
 
@@ -181,6 +211,7 @@ async function saveStartScript() {
     return;
   }
   try {
+    applyJmxToStartScript();
     const response = await fetch("/api/start-script/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
