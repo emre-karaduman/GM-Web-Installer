@@ -67,6 +67,23 @@
       </section>
 
       <section class="card">
+        <h2>Server.properties bearbeiten</h2>
+        <p class="muted">
+          Hier kannst du wichtige Einstellungen wie RCON, MOTD, Slots und
+          Difficulty anpassen.
+        </p>
+        <textarea
+          id="server-properties"
+          rows="10"
+          placeholder="server.properties wird geladen..."
+        ></textarea>
+        <div class="actions">
+          <button id="load-properties" disabled>Properties laden</button>
+          <button id="save-properties" disabled>Properties speichern</button>
+        </div>
+      </section>
+
+      <section class="card">
         <h2>RCON Konsole</h2>
         <p class="muted">
           Aktivieren in <code>server.properties</code>: <code>enable-rcon=true</code>

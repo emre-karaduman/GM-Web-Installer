@@ -18,7 +18,7 @@ const installSteps = [
   },
   {
     label: "Java und Tools installieren",
-    command: "apt-get install -y curl wget screen openjdk-17-jre-headless",
+    command: "apt-get install -y curl wget screen openjdk-21-jre-headless",
   },
   {
     label: "Minecraft Benutzer anlegen",
@@ -225,6 +225,55 @@ app.post("/api/start-script/update", async (req, res) => {
     const result = await runCommand(
       connection,
       `echo '${encodedScript}' | base64 -d > /opt/minecraft/start.sh && chmod +x /opt/minecraft/start.sh`
+    );
+    res.json({ success: result.code === 0, result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.end();
+    }
+  }
+});
+
+app.post("/api/server-properties", async (req, res) => {
+  const { host, username, password } = req.body;
+  if (!host || !username || !password) {
+    res.status(400).json({ message: "Bitte Host, Benutzer und Passwort angeben." });
+    return;
+  }
+  let connection;
+  try {
+    connection = await withConnection({ host, username, password });
+    const result = await runCommand(
+      connection,
+      "cat /opt/minecraft/server.properties"
+    );
+    res.json({ success: true, properties: result.stdout });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.end();
+    }
+  }
+});
+
+app.post("/api/server-properties/update", async (req, res) => {
+  const { host, username, password, properties } = req.body;
+  if (!host || !username || !password || !properties) {
+    res.status(400).json({
+      message: "Bitte Host, Benutzer, Passwort und Properties angeben.",
+    });
+    return;
+  }
+  let connection;
+  try {
+    const encodedProperties = Buffer.from(properties, "utf8").toString("base64");
+    connection = await withConnection({ host, username, password });
+    const result = await runCommand(
+      connection,
+      `echo '${encodedProperties}' | base64 -d > /opt/minecraft/server.properties`
     );
     res.json({ success: result.code === 0, result });
   } catch (error) {

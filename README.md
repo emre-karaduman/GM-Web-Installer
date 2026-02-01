@@ -24,3 +24,4 @@ Die App läuft anschließend unter `http://localhost:3000`.
 - Die Live-Konsole nutzt eine SSH-Shell-Verbindung per WebSocket.
 - Das Startskript kann über die Weboberfläche geladen und gespeichert werden.
 - Für RCON muss in `server.properties` `enable-rcon=true` und `rcon.password` gesetzt werden.
+- Die `server.properties` lassen sich über die Weboberfläche laden und speichern.

@@ -12,6 +12,9 @@ const consoleSend = document.getElementById("console-send");
 const startScriptArea = document.getElementById("start-script");
 const loadScriptButton = document.getElementById("load-script");
 const saveScriptButton = document.getElementById("save-script");
+const serverPropertiesArea = document.getElementById("server-properties");
+const loadPropertiesButton = document.getElementById("load-properties");
+const savePropertiesButton = document.getElementById("save-properties");
 const rconHostInput = document.getElementById("rcon-host");
 const rconPortInput = document.getElementById("rcon-port");
 const rconPasswordInput = document.getElementById("rcon-password");
@@ -47,6 +50,8 @@ function setButtonsState(enabled) {
   statusButton.disabled = !enabled;
   loadScriptButton.disabled = !enabled;
   saveScriptButton.disabled = !enabled;
+  loadPropertiesButton.disabled = !enabled;
+  savePropertiesButton.disabled = !enabled;
   rconSend.disabled = !enabled;
 }
 
@@ -163,6 +168,50 @@ async function saveStartScript() {
   }
 }
 
+async function loadServerProperties() {
+  if (!connectionData) {
+    return;
+  }
+  try {
+    const response = await fetch("/api/server-properties", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(connectionData),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "server.properties konnte nicht geladen werden.");
+    }
+    serverPropertiesArea.value = data.properties || "";
+    log("server.properties geladen.");
+  } catch (error) {
+    log(error.message);
+  }
+}
+
+async function saveServerProperties() {
+  if (!connectionData) {
+    return;
+  }
+  try {
+    const response = await fetch("/api/server-properties/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...connectionData,
+        properties: serverPropertiesArea.value,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "server.properties konnte nicht gespeichert werden.");
+    }
+    log("server.properties gespeichert.");
+  } catch (error) {
+    log(error.message);
+  }
+}
+
 connectionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(connectionForm);
@@ -179,6 +228,7 @@ connectionForm.addEventListener("submit", async (event) => {
     setButtonsState(true);
     connectConsole();
     await loadStartScript();
+    await loadServerProperties();
     await updateStatus();
     if (!rconHostInput.value) {
       rconHostInput.value = connectionData.host;
@@ -260,6 +310,8 @@ stopButton.addEventListener("click", () => controlServer("stop"));
 statusButton.addEventListener("click", updateStatus);
 loadScriptButton.addEventListener("click", loadStartScript);
 saveScriptButton.addEventListener("click", saveStartScript);
+loadPropertiesButton.addEventListener("click", loadServerProperties);
+savePropertiesButton.addEventListener("click", saveServerProperties);
 
 consoleSend.addEventListener("click", () => {
   const value = consoleCommand.value.trim();
