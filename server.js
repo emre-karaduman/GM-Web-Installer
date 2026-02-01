@@ -18,7 +18,8 @@ const installSteps = [
   },
   {
     label: "Java und Tools installieren",
-    command: "apt-get install -y curl wget screen openjdk-21-jre-headless",
+    command:
+      "apt-get install -y curl wget screen && (java -version >/dev/null 2>&1 || (cd /tmp && wget -q https://download.bell-sw.com/java/21.0.10+10/bellsoft-jdk21.0.10+10-linux-amd64.deb && apt-get install -y ./bellsoft-jdk21.0.10+10-linux-amd64.deb))",
   },
   {
     label: "Minecraft Benutzer anlegen",
