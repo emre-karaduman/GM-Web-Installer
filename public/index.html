@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gameserver Installer</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Gameserver Installation</h1>
+        <p>Verbinde dich per SSH und installiere den Gameserver Schritt für Schritt.</p>
+      </header>
+
+      <section class="card">
+        <h2>Verbindung</h2>
+        <form id="connection-form">
+          <label>
+            Server-IP
+            <input type="text" name="host" placeholder="192.168.0.10" required />
+          </label>
+          <label>
+            Benutzer
+            <input type="text" name="username" value="root" required />
+          </label>
+          <label>
+            Passwort
+            <input type="password" name="password" placeholder="Passwort" required />
+          </label>
+          <button type="submit">Installationsschritte laden</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Installation</h2>
+        <div class="actions">
+          <button id="install-button" disabled>Installation starten</button>
+        </div>
+        <ol id="steps-list"></ol>
+      </section>
+
+      <section class="card">
+        <h2>Server steuern</h2>
+        <div class="actions">
+          <button id="start-button" disabled>Server starten</button>
+          <button id="stop-button" disabled>Server stoppen</button>
+          <button id="status-button" disabled>Status prüfen</button>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Status:</span>
+          <span id="server-status" class="status-pill">unbekannt</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Startskript konfigurieren</h2>
+        <p class="muted">
+          Passe den Inhalt von <code>/opt/minecraft/start.sh</code> an und speichere
+          ihn direkt auf dem Server.
+        </p>
+        <textarea id="start-script" rows="6" placeholder="#!/usr/bin/env bash"></textarea>
+        <div class="actions">
+          <button id="load-script" disabled>Skript laden</button>
+          <button id="save-script" disabled>Skript speichern</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Server.properties bearbeiten</h2>
+        <p class="muted">
+          Hier kannst du wichtige Einstellungen wie RCON, MOTD, Slots und
+          Difficulty anpassen.
+        </p>
+        <div class="properties-grid">
+          <label>
+            Query aktivieren
+            <select id="prop-enable-query">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
+          <label>
+            JMX Monitoring
+            <select id="prop-enable-jmx">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
+          <label>
+            Management-Server aktiviert
+            <select id="prop-mgmt-enabled">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
+          <label>
+            Management-Server Host
+            <input type="text" id="prop-mgmt-host" placeholder="localhost" />
+          </label>
+          <label>
+            Management-Server Port
+            <input type="number" id="prop-mgmt-port" placeholder="0" />
+          </label>
+          <label>
+            Management-Server Origins
+            <input
+              type="text"
+              id="prop-mgmt-origins"
+              placeholder="https://panel.example"
+            />
+          </label>
+          <label>
+            Management-Server Secret
+            <input
+              type="text"
+              id="prop-mgmt-secret"
+              placeholder="Secret"
+            />
+          </label>
+          <label>
+            TLS aktiviert
+            <select id="prop-mgmt-tls-enabled">
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+          </label>
+          <label>
+            TLS Keystore Pfad
+            <input
+              type="text"
+              id="prop-mgmt-tls-keystore"
+              placeholder="/path/to/keystore"
+            />
+          </label>
+          <label>
+            TLS Keystore Passwort
+            <input
+              type="password"
+              id="prop-mgmt-tls-keystore-password"
+              placeholder="Passwort"
+            />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="apply-properties" disabled>In Editor übernehmen</button>
+        </div>
+        <textarea
+          id="server-properties"
+          rows="10"
+          placeholder="server.properties wird geladen..."
+        ></textarea>
+        <div class="actions">
+          <button id="load-properties" disabled>Properties laden</button>
+          <button id="save-properties" disabled>Properties speichern</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>RCON Konsole</h2>
+        <p class="muted">
+          Aktivieren in <code>server.properties</code>: <code>enable-rcon=true</code>
+          und <code>rcon.password</code> setzen.
+        </p>
+        <div class="rcon-grid">
+          <label>
+            RCON Host
+            <input type="text" id="rcon-host" placeholder="Server-IP" />
+          </label>
+          <label>
+            RCON Port
+            <input type="number" id="rcon-port" placeholder="25575" />
+          </label>
+          <label>
+            RCON Passwort
+            <input type="password" id="rcon-password" placeholder="RCON Passwort" />
+          </label>
+        </div>
+        <div class="console">
+          <pre id="rcon-output"></pre>
+          <div class="console-input">
+            <input id="rcon-command" type="text" placeholder="Befehl (z. B. say Hallo)" />
+            <button id="rcon-send" disabled>Befehl senden</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Live-Konsole</h2>
+        <p class="muted">
+          Verbinde dich per SSH und sende Befehle direkt an den Server.
+        </p>
+        <div class="console">
+          <pre id="console-output"></pre>
+          <div class="console-input">
+            <input
+              id="console-command"
+              type="text"
+              placeholder="Befehl eingeben (z. B. status)"
+            />
+            <button id="console-send" disabled>Befehl senden</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card log-card">
+        <h2>Log</h2>
+        <pre id="log"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
