@@ -3,6 +3,7 @@ const http = require("http");
 const path = require("path");
 const { Client } = require("ssh2");
 const { WebSocketServer } = require("ws");
+const { Rcon } = require("rcon-client");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -231,6 +232,32 @@ app.post("/api/start-script/update", async (req, res) => {
   } finally {
     if (connection) {
       connection.end();
+    }
+  }
+});
+
+app.post("/api/rcon/command", async (req, res) => {
+  const { host, port, password, command } = req.body;
+  if (!host || !port || !password || !command) {
+    res.status(400).json({
+      message: "Bitte Host, Port, Passwort und Befehl für RCON angeben.",
+    });
+    return;
+  }
+  let rcon;
+  try {
+    rcon = await Rcon.connect({
+      host,
+      port: Number(port),
+      password,
+    });
+    const response = await rcon.send(command);
+    res.json({ success: true, response });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (rcon) {
+      await rcon.end().catch(() => {});
     }
   }
 });

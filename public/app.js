@@ -12,6 +12,12 @@ const consoleSend = document.getElementById("console-send");
 const startScriptArea = document.getElementById("start-script");
 const loadScriptButton = document.getElementById("load-script");
 const saveScriptButton = document.getElementById("save-script");
+const rconHostInput = document.getElementById("rcon-host");
+const rconPortInput = document.getElementById("rcon-port");
+const rconPasswordInput = document.getElementById("rcon-password");
+const rconOutput = document.getElementById("rcon-output");
+const rconCommand = document.getElementById("rcon-command");
+const rconSend = document.getElementById("rcon-send");
 
 let connectionData = null;
 let steps = [];
@@ -29,6 +35,11 @@ function appendConsole(message) {
   consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
+function appendRcon(message) {
+  rconOutput.textContent += message;
+  rconOutput.scrollTop = rconOutput.scrollHeight;
+}
+
 function setButtonsState(enabled) {
   installButton.disabled = !enabled;
   startButton.disabled = !enabled;
@@ -36,6 +47,7 @@ function setButtonsState(enabled) {
   statusButton.disabled = !enabled;
   loadScriptButton.disabled = !enabled;
   saveScriptButton.disabled = !enabled;
+  rconSend.disabled = !enabled;
 }
 
 async function fetchSteps() {
@@ -168,6 +180,12 @@ connectionForm.addEventListener("submit", async (event) => {
     connectConsole();
     await loadStartScript();
     await updateStatus();
+    if (!rconHostInput.value) {
+      rconHostInput.value = connectionData.host;
+    }
+    if (!rconPortInput.value) {
+      rconPortInput.value = "25575";
+    }
     if (statusTimer) {
       clearInterval(statusTimer);
     }
@@ -256,5 +274,44 @@ consoleCommand.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
     consoleSend.click();
+  }
+});
+
+rconSend.addEventListener("click", async () => {
+  const command = rconCommand.value.trim();
+  if (!command) {
+    return;
+  }
+  const payload = {
+    host: rconHostInput.value.trim(),
+    port: rconPortInput.value.trim(),
+    password: rconPasswordInput.value,
+    command,
+  };
+  if (!payload.host || !payload.port || !payload.password) {
+    appendRcon("Bitte RCON Host, Port und Passwort angeben.\n");
+    return;
+  }
+  try {
+    const response = await fetch("/api/rcon/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "RCON Fehler.");
+    }
+    appendRcon(`> ${command}\n${data.response || "OK"}\n`);
+    rconCommand.value = "";
+  } catch (error) {
+    appendRcon(`${error.message}\n`);
+  }
+});
+
+rconCommand.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    rconSend.click();
   }
 });

@@ -67,6 +67,35 @@
       </section>
 
       <section class="card">
+        <h2>RCON Konsole</h2>
+        <p class="muted">
+          Aktivieren in <code>server.properties</code>: <code>enable-rcon=true</code>
+          und <code>rcon.password</code> setzen.
+        </p>
+        <div class="rcon-grid">
+          <label>
+            RCON Host
+            <input type="text" id="rcon-host" placeholder="Server-IP" />
+          </label>
+          <label>
+            RCON Port
+            <input type="number" id="rcon-port" placeholder="25575" />
+          </label>
+          <label>
+            RCON Passwort
+            <input type="password" id="rcon-password" placeholder="RCON Passwort" />
+          </label>
+        </div>
+        <div class="console">
+          <pre id="rcon-output"></pre>
+          <div class="console-input">
+            <input id="rcon-command" type="text" placeholder="Befehl (z. B. say Hallo)" />
+            <button id="rcon-send" disabled>Befehl senden</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
         <h2>Live-Konsole</h2>
         <p class="muted">
           Verbinde dich per SSH und sende Befehle direkt an den Server.

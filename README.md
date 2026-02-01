@@ -23,3 +23,4 @@ Die App läuft anschließend unter `http://localhost:3000`.
 - Start/Stop nutzt einen Systemd-Service namens `minecraft.service`.
 - Die Live-Konsole nutzt eine SSH-Shell-Verbindung per WebSocket.
 - Das Startskript kann über die Weboberfläche geladen und gespeichert werden.
+- Für RCON muss in `server.properties` `enable-rcon=true` und `rcon.password` gesetzt werden.
