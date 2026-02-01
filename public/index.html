@@ -45,6 +45,24 @@
         <div class="actions">
           <button id="start-button" disabled>Server starten</button>
           <button id="stop-button" disabled>Server stoppen</button>
+          <button id="status-button" disabled>Status prüfen</button>
+        </div>
+        <div class="status-row">
+          <span class="status-label">Status:</span>
+          <span id="server-status" class="status-pill">unbekannt</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Startskript konfigurieren</h2>
+        <p class="muted">
+          Passe den Inhalt von <code>/opt/minecraft/start.sh</code> an und speichere
+          ihn direkt auf dem Server.
+        </p>
+        <textarea id="start-script" rows="6" placeholder="#!/usr/bin/env bash"></textarea>
+        <div class="actions">
+          <button id="load-script" disabled>Skript laden</button>
+          <button id="save-script" disabled>Skript speichern</button>
         </div>
       </section>
 

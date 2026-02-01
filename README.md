@@ -22,3 +22,4 @@ Die App läuft anschließend unter `http://localhost:3000`.
 - Die Installationsschritte sind in `server.js` definiert und können angepasst werden.
 - Start/Stop nutzt einen Systemd-Service namens `minecraft.service`.
 - Die Live-Konsole nutzt eine SSH-Shell-Verbindung per WebSocket.
+- Das Startskript kann über die Weboberfläche geladen und gespeichert werden.

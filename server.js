@@ -167,6 +167,74 @@ app.post("/api/server/stop", async (req, res) => {
   }
 });
 
+app.post("/api/server/status", async (req, res) => {
+  const { host, username, password } = req.body;
+  if (!host || !username || !password) {
+    res.status(400).json({ message: "Bitte Host, Benutzer und Passwort angeben." });
+    return;
+  }
+  let connection;
+  try {
+    connection = await withConnection({ host, username, password });
+    const result = await runCommand(
+      connection,
+      "systemctl is-active minecraft.service"
+    );
+    const status = result.stdout.trim() || "unknown";
+    res.json({ success: true, status });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.end();
+    }
+  }
+});
+
+app.post("/api/start-script", async (req, res) => {
+  const { host, username, password } = req.body;
+  if (!host || !username || !password) {
+    res.status(400).json({ message: "Bitte Host, Benutzer und Passwort angeben." });
+    return;
+  }
+  let connection;
+  try {
+    connection = await withConnection({ host, username, password });
+    const result = await runCommand(connection, "cat /opt/minecraft/start.sh");
+    res.json({ success: true, script: result.stdout });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.end();
+    }
+  }
+});
+
+app.post("/api/start-script/update", async (req, res) => {
+  const { host, username, password, script } = req.body;
+  if (!host || !username || !password || !script) {
+    res.status(400).json({ message: "Bitte Host, Benutzer, Passwort und Skript angeben." });
+    return;
+  }
+  let connection;
+  try {
+    const encodedScript = Buffer.from(script, "utf8").toString("base64");
+    connection = await withConnection({ host, username, password });
+    const result = await runCommand(
+      connection,
+      `echo '${encodedScript}' | base64 -d > /opt/minecraft/start.sh && chmod +x /opt/minecraft/start.sh`
+    );
+    res.json({ success: result.code === 0, result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.end();
+    }
+  }
+});
+
 app.get("/api/install-steps", (req, res) => {
   res.json({
     steps: installSteps.map((step) => ({
